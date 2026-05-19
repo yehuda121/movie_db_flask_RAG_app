@@ -1,0 +1,8 @@
+venv/
+.venv/
+__pycache__/
+.env
+data/database.db
+data/faiss/*.index
+data/faiss/metadata.json
+data/models/

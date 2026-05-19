@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login | MovieDB{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <h1>Admin Login</h1>
+    <p>Sign in to manage movies in the database.</p>
+</section>
+
+<section class="admin-credentials" aria-label="Demo login credentials">
+    <h2>Demo credentials</h2>
+    <ul>
+        <li><strong>Username:</strong> admin</li>
+        <li><strong>Password:</strong> admin123</li>
+    </ul>
+    <p class="credentials-note">For learning only — change these before deploying publicly.</p>
+</section>
+
+<section class="form-section narrow">
+    <form class="form-card" method="post" action="{{ url_for('admin_login') }}">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input
+                type="text"
+                id="username"
+                name="username"
+                required
+                autocomplete="username"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Log In</button>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | MovieDB{% endblock %}
+
+{% block content %}
+<section class="page-header admin-header">
+    <div>
+        <h1>Admin Dashboard</h1>
+        <p>Manage movies in the SQLite database.</p>
+    </div>
+    <div class="admin-actions">
+        <a class="btn btn-primary" href="{{ url_for('add_movie') }}">Add Movie</a>
+        <form class="inline-form" method="post" action="{{ url_for('admin_rebuild_rag') }}">
+            <button type="submit" class="btn btn-secondary">Rebuild RAG Index</button>
+        </form>
+        <a class="btn btn-secondary" href="{{ url_for('admin_logout') }}">Log Out</a>
+    </div>
+</section>
+
+{% if movies %}
+<section class="admin-table-section">
+    <h2>Current Movies</h2>
+    <div class="table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Slug</th>
+                    <th>Year</th>
+                    <th>View</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movie in movies %}
+                <tr>
+                    <td>{{ movie['title'] }}</td>
+                    <td>{{ movie['slug'] }}</td>
+                    <td>{{ movie['release_year'] }}</td>
+                    <td>
+                        <a href="{{ url_for('movie_details', slug=movie['slug']) }}">Open</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% else %}
+<section class="empty-state">
+    <p>No movies in the database yet.</p>
+    <a class="btn btn-primary" href="{{ url_for('add_movie') }}">Add your first movie</a>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ movie['title'] }} | MovieDB{% endblock %}
+
+{% block content %}
+<section class="movie-details">
+    <div class="movie-details-poster">
+        <img
+            src="{{ url_for('static', filename='images/posters/' ~ movie['poster_filename']) }}"
+            alt="{{ movie['title'] }} poster"
+        >
+    </div>
+
+    <div class="movie-details-info">
+        <h1>{{ movie['title'] }}</h1>
+        <p class="movie-year">{{ movie['release_year'] }}</p>
+        <p class="movie-plot">{{ movie['description'] }}</p>
+
+        <div class="movie-meta">
+            <p><strong>Director:</strong> {{ movie['director'] }}</p>
+            <p><strong>Cast:</strong>
+                {{ movie['actor_1'] }},
+                {{ movie['actor_2'] }},
+                {{ movie['actor_3'] }},
+                {{ movie['actor_4'] }}
+            </p>
+        </div>
+
+        <a class="btn btn-secondary" href="{{ url_for('home') }}">&larr; Back to gallery</a>
+    </div>
+</section>
+
+<section class="reviews-section">
+    <h2>User Reviews</h2>
+
+    {% if reviews %}
+    <div class="reviews-list">
+        {% for review in reviews %}
+        <article class="review-card">
+            <header class="review-header">
+                <strong>{{ review['reviewer_name'] }}</strong>
+                <span class="review-rating">{{ review['rating'] }}/5</span>
+            </header>
+            <p class="review-text">{{ review['review_text'] }}</p>
+            <time class="review-date">{{ review['created_at'] }}</time>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-reviews">No reviews yet. Be the first to write one!</p>
+    {% endif %}
+</section>
+
+<section class="review-form-section">
+    <h2>Write a Review</h2>
+    {% include "add_review.html" %}
+</section>
+{% endblock %}

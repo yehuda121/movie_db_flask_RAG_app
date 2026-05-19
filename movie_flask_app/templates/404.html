@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Not Found | MovieDB{% endblock %}
+
+{% block content %}
+<section class="empty-state">
+    <h1>404</h1>
+    <p>The page or movie you requested was not found.</p>
+    <a class="btn btn-primary" href="{{ url_for('home') }}">Go Home</a>
+</section>
+{% endblock %}

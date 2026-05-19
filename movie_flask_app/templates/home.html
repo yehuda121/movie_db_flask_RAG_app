@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Home | MovieDB{% endblock %}
+
+{% block content %}
+
+<form class="search-form" method="get" action="{{ url_for('home') }}" role="search">
+    <label class="visually-hidden" for="q">Search movies by title</label>
+    <input
+        type="search"
+        id="q"
+        name="q"
+        class="search-input"
+        placeholder="Search by title (e.g. bat, matrix)…"
+        value="{{ search_query }}"
+        autocomplete="off"
+    >
+    <button type="submit" class="btn btn-primary search-btn">Search</button>
+    {% if search_query %}
+    <a class="btn btn-secondary search-clear" href="{{ url_for('home') }}">Clear</a>
+    {% endif %}
+</form>
+
+{% if movies %}
+<section class="poster-section">
+    <h2 class="poster-section-title">
+        {% if search_query %}
+            Results for &ldquo;{{ search_query }}&rdquo;
+        {% else %}
+            Popular Movies
+        {% endif %}
+    </h2>
+    <!-- <p class="poster-section-hint">Sorted by highest average user rating</p> -->
+    <div class="poster-grid">
+        {% for movie in movies %}
+        <a class="poster-card" href="{{ url_for('movie_details', slug=movie['slug']) }}" title="{{ movie['title'] }}">
+            {% if movie['review_count'] > 0 %}
+            <span class="poster-rating" title="Average rating">{{ "%.1f"|format(movie['avg_rating']) }} ★</span>
+            {% endif %}
+            <img
+                src="{{ url_for('static', filename='images/posters/' ~ movie['poster_filename']) }}"
+                alt="{{ movie['title'] }} poster"
+                loading="lazy"
+            >
+            <span class="poster-overlay">{{ movie['title'] }} ({{ movie['release_year'] }})</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+{% elif search_query %}
+<section class="empty-state">
+    <h2>No movies found</h2>
+    <p>No titles match &ldquo;{{ search_query }}&rdquo;. Try a different search or browse all movies.</p>
+    <a class="btn btn-primary" href="{{ url_for('home') }}">View all movies</a>
+</section>
+
+{% else %}
+<section class="empty-state">
+    <h2>No movies yet</h2>
+    <p>Run <code>python database/seed.py</code> or log in as admin to add movies.</p>
+    <a class="btn btn-primary" href="{{ url_for('admin_login') }}">Admin Login</a>
+</section>
+{% endif %}
+{% endblock %}

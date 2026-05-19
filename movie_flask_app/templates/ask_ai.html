@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Ask AI | MovieDB{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <h1>Ask AI</h1>
+    <p>Ask questions about movies in our database. Answers use only retrieved movie data (RAG).</p>
+</section>
+
+<section class="ask-ai-section">
+    <form class="form-card ask-form" method="post" action="{{ url_for('ask_ai') }}">
+        <div class="form-group form-group-full">
+            <label for="question">Your question</label>
+            <textarea
+                id="question"
+                name="question"
+                rows="3"
+                required
+                placeholder="Example: Which movies did Christopher Nolan direct?"
+            >{{ question }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Ask</button>
+    </form>
+</section>
+
+{% if error_message %}
+<section class="rag-alert rag-alert-error">
+    <p>{{ error_message }}</p>
+</section>
+{% endif %}
+
+{% if submitted_question and answer %}
+<p class="ask-submitted-label">You asked: <em>{{ submitted_question }}</em></p>
+{% endif %}
+
+{% if answer %}
+<section class="rag-answer-card">
+    <h2>AI Answer</h2>
+    <div class="rag-answer-text">{{ answer }}</div>
+</section>
+{% endif %}
+
+{% if sources %}
+<section class="rag-sources-section">
+    <h2>Retrieved Sources</h2>
+    <p class="poster-section-hint">Movies used as context (similarity score: higher = more relevant)</p>
+    <div class="rag-sources-list">
+        {% for source in sources %}
+        <article class="rag-source-card">
+            <header class="rag-source-header">
+                <h3>
+                    <a href="{{ url_for('movie_details', slug=source.slug) }}">{{ source.title }}</a>
+                </h3>
+                <span class="rag-score">Score: {{ source.score }}</span>
+            </header>
+            <pre class="rag-chunk-preview">{{ source.text }}</pre>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

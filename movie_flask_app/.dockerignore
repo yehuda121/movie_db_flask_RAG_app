@@ -1,0 +1,15 @@
+venv/
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.git/
+.env
+.env.*
+!.env.example
+.DS_Store
+data/faiss/*.index
+data/models/
+*.db-journal
+*.db-wal
