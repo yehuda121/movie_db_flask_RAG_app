@@ -5,7 +5,7 @@
 {% block content %}
 <section class="page-header">
     <h1>Ask AI</h1>
-    <p>Ask questions about movies in our database. Answers use only retrieved movie data (RAG).</p>
+    <!-- <p>Ask questions about movies in our database. Answers use only retrieved movie data (RAG).</p> -->
 </section>
 
 <section class="ask-ai-section">
@@ -27,7 +27,7 @@
                 aria-describedby="question-hint"
             >{{ question }}</textarea>
             <small id="question-hint" class="form-hint">
-                Maximum {{ max_question_length }} characters. Leading and trailing spaces are removed automatically.
+                Maximum {{ max_question_length }} characters.
             </small>
         </div>
 
@@ -61,7 +61,6 @@
 <section class="rag-sources-section">
     <h2>Retrieved Sources</h2>
     <p class="rag-sources-helper">
-        These are the movie records retrieved from FAISS and used as context for the AI answer.
         Only sources with similarity score &ge; {{ min_context_score }} are shown.
     </p>
     {% if sources %}
