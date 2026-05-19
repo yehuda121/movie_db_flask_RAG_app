@@ -8,8 +8,9 @@ from rag.faiss_index import index_exists, load_index, rebuild_rag_index
 from rag.llm_service import generate_answer_from_messages
 from rag.prompt_builder import build_rag_messages
 
-# Cosine similarity threshold (normalized vectors → inner product = cosine sim)
-SIMILARITY_THRESHOLD = float(os.environ.get("RAG_SIMILARITY_THRESHOLD", "0.35"))
+# Minimum cosine similarity to use a chunk as context or show in the UI
+MIN_CONTEXT_SCORE = float(os.environ.get("RAG_MIN_CONTEXT_SCORE", "0.40"))
+
 TOP_K = int(os.environ.get("RAG_TOP_K", "3"))
 
 NO_CONTEXT_MESSAGE = (
@@ -65,8 +66,8 @@ def _retrieval_params_for_question(question):
         "cast",
     )
     if any(keyword in q for keyword in list_keywords):
-        return max(TOP_K, 8), max(0.28, SIMILARITY_THRESHOLD - 0.05)
-    return TOP_K, SIMILARITY_THRESHOLD
+        return max(TOP_K, 8)
+    return TOP_K
 
 
 def _looks_like_unjustified_refusal(answer):
@@ -75,18 +76,13 @@ def _looks_like_unjustified_refusal(answer):
     return any(pattern in text for pattern in _LLM_REFUSAL_PATTERNS)
 
 
-def retrieve_relevant_chunks(question, top_k=None, threshold=None):
+def retrieve_relevant_chunks(question, top_k=None, min_score=None):
     """
     Search FAISS for chunks similar to the question.
-    Returns a list of dicts: title, slug, text, score.
+    Returns only chunks with similarity score >= min_score (default 0.40).
     """
-    if top_k is None or threshold is None:
-        default_k, default_t = _retrieval_params_for_question(question)
-        top_k = top_k or default_k
-        threshold = threshold if threshold is not None else default_t
-    else:
-        top_k = top_k or TOP_K
-        threshold = threshold if threshold is not None else SIMILARITY_THRESHOLD
+    top_k = top_k or _retrieval_params_for_question(question)
+    min_score = min_score if min_score is not None else MIN_CONTEXT_SCORE
 
     if not index_exists():
         return []
@@ -105,7 +101,7 @@ def retrieve_relevant_chunks(question, top_k=None, threshold=None):
         if idx < 0:
             continue
         similarity = float(score)
-        if similarity < threshold:
+        if similarity < min_score:
             continue
 
         chunk = chunks[int(idx)]
@@ -119,7 +115,9 @@ def retrieve_relevant_chunks(question, top_k=None, threshold=None):
             }
         )
 
-    _debug_log(f"Retrieved {len(results)} chunk(s) for: {question!r}")
+    _debug_log(
+        f"Retrieved {len(results)} chunk(s) with score >= {min_score} for: {question!r}"
+    )
     for item in results:
         _debug_log(f"  - {item['title']} (score={item['score']})")
 
@@ -137,6 +135,9 @@ def _generate_with_context(question, sources, emphasis=False):
     return answer, prompt_debug
 
 
+MAX_QUESTION_LENGTH = 150
+
+
 def ask_question(question):
     """
     Full RAG pipeline: retrieve → prompt → Groq.
@@ -149,6 +150,14 @@ def ask_question(question):
             "answer": "",
             "sources": [],
             "error": "Please enter a question.",
+            "clear_input": False,
+        }
+    if len(question) > MAX_QUESTION_LENGTH:
+        return {
+            "success": False,
+            "answer": "",
+            "sources": [],
+            "error": "Question is too long. Maximum length is 150 characters.",
             "clear_input": False,
         }
 
@@ -171,15 +180,19 @@ def ask_question(question):
             "clear_input": False,
         }
 
-    # Fallback ONLY when retrieval finds nothing above threshold
+    # No Groq call unless at least one chunk scores >= MIN_CONTEXT_SCORE
     if not sources:
-        _debug_log("No chunks passed threshold — returning retrieval fallback.")
+        _debug_log(
+            f"No chunks with score >= {MIN_CONTEXT_SCORE} — "
+            "skipping Groq and returning retrieval fallback."
+        )
         return {
             "success": True,
             "answer": NO_CONTEXT_MESSAGE,
             "sources": [],
             "error": None,
             "clear_input": True,
+            "show_retrieval_section": True,
         }
 
     try:
@@ -197,6 +210,7 @@ def ask_question(question):
             "sources": sources,
             "error": str(error),
             "clear_input": False,
+            "show_retrieval_section": bool(sources),
         }
     except Exception as error:
         return {
@@ -205,6 +219,7 @@ def ask_question(question):
             "sources": sources,
             "error": f"LLM request failed: {error}",
             "clear_input": False,
+            "show_retrieval_section": bool(sources),
         }
 
     return {
@@ -213,6 +228,7 @@ def ask_question(question):
         "sources": sources,
         "error": None,
         "clear_input": True,
+        "show_retrieval_section": True,
     }
 
 

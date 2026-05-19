@@ -9,18 +9,31 @@
 </section>
 
 <section class="ask-ai-section">
-    <form class="form-card ask-form" method="post" action="{{ url_for('ask_ai') }}">
+    <form
+        class="form-card ask-form"
+        method="post"
+        action="{{ url_for('ask_ai') }}"
+        novalidate
+        data-max-length="{{ max_question_length }}"
+    >
         <div class="form-group form-group-full">
             <label for="question">Your question</label>
             <textarea
                 id="question"
                 name="question"
                 rows="3"
-                required
+                maxlength="{{ max_question_length }}"
                 placeholder="Example: Which movies did Christopher Nolan direct?"
+                aria-describedby="question-hint"
             >{{ question }}</textarea>
+            <small id="question-hint" class="form-hint">
+                Maximum {{ max_question_length }} characters. Leading and trailing spaces are removed automatically.
+            </small>
         </div>
-        <button type="submit" class="btn btn-primary">Ask</button>
+
+        <div id="ask-client-error" class="rag-alert rag-alert-error ask-client-error" hidden role="alert"></div>
+
+        <button type="submit" id="ask-submit-btn" class="btn btn-primary">Ask</button>
     </form>
 </section>
 
@@ -30,8 +43,11 @@
 </section>
 {% endif %}
 
-{% if submitted_question and answer %}
-<p class="ask-submitted-label">You asked: <em>{{ submitted_question }}</em></p>
+{% if submitted_question %}
+<article class="question-bubble" aria-label="Your question">
+    <span class="question-bubble-label">You asked</span>
+    <p class="question-bubble-text">{{ submitted_question }}</p>
+</article>
 {% endif %}
 
 {% if answer %}
@@ -41,10 +57,14 @@
 </section>
 {% endif %}
 
-{% if sources %}
+{% if show_retrieval_section %}
 <section class="rag-sources-section">
     <h2>Retrieved Sources</h2>
-    <p class="poster-section-hint">Movies used as context (similarity score: higher = more relevant)</p>
+    <p class="rag-sources-helper">
+        These are the movie records retrieved from FAISS and used as context for the AI answer.
+        Only sources with similarity score &ge; {{ min_context_score }} are shown.
+    </p>
+    {% if sources %}
     <div class="rag-sources-list">
         {% for source in sources %}
         <article class="rag-source-card">
@@ -58,6 +78,12 @@
         </article>
         {% endfor %}
     </div>
+    {% else %}
+    <p class="rag-sources-empty">
+        No movie records reached the minimum relevance score ({{ min_context_score }}).
+        The AI was not called for this question.
+    </p>
+    {% endif %}
 </section>
 {% endif %}
 {% endblock %}

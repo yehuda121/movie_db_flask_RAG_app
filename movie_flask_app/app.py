@@ -47,6 +47,25 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 
+MAX_QUESTION_LENGTH = 150
+
+
+def validate_ask_question(raw_question):
+    """
+    Clean and validate Ask AI questions.
+    Returns (is_valid, error_message, cleaned_question).
+    """
+    cleaned = raw_question.strip()
+    if not cleaned:
+        return False, "Please enter a question.", cleaned
+    if len(cleaned) > MAX_QUESTION_LENGTH:
+        return (
+            False,
+            "Question is too long. Maximum length is 150 characters.",
+            cleaned,
+        )
+    return True, None, cleaned
+
 
 def rebuild_rag_index_safe():
     """Rebuild FAISS index and return (success, message)."""
@@ -156,28 +175,35 @@ def home():
 @app.route("/ask", methods=["GET", "POST"])
 def ask_ai():
     """Ask AI page: RAG question answering over movie database."""
+    from rag.retrieval import MIN_CONTEXT_SCORE, ask_question
+
     question = ""
     answer = None
     sources = []
     error_message = None
 
     submitted_question = ""
+    show_retrieval_section = False
+    min_context_score = MIN_CONTEXT_SCORE
 
     if request.method == "POST":
-        question = request.form.get("question", "").strip()
-        submitted_question = question
-        if not question:
-            error_message = "Please enter a question."
-        else:
-            from rag.retrieval import ask_question
+        raw_question = request.form.get("question", "")
+        is_valid, validation_error, question = validate_ask_question(raw_question)
 
+        if not is_valid:
+            error_message = validation_error
+            # Keep trimmed text in the textarea when validation fails
+        else:
+            submitted_question = question
             result = ask_question(question)
             if result["error"] and not result["success"]:
                 error_message = result["error"]
+                sources = result.get("sources", [])
+                show_retrieval_section = result.get("show_retrieval_section", False)
             else:
                 answer = result["answer"]
                 sources = result["sources"]
-                # Clear textarea after a successful submit
+                show_retrieval_section = result.get("show_retrieval_section", False)
                 if result.get("clear_input"):
                     question = ""
 
@@ -188,6 +214,9 @@ def ask_ai():
         answer=answer,
         sources=sources,
         error_message=error_message,
+        show_retrieval_section=show_retrieval_section,
+        min_context_score=min_context_score,
+        max_question_length=MAX_QUESTION_LENGTH,
     )
 
 

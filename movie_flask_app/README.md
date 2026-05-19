@@ -256,7 +256,7 @@ Create `movie_flask_app/.env` (copy from `.env.example`). **Do not commit `.env`
 | -------- | -------- | ----------- |
 | `GROQ_API_KEY` | Yes (for Ask AI) | Your Groq API key |
 | `GROQ_MODEL` | No | Default: `llama-3.1-8b-instant` |
-| `RAG_SIMILARITY_THRESHOLD` | No | Default: `0.35` |
+| `RAG_MIN_CONTEXT_SCORE` | No | Default: `0.40` — minimum score to call Groq and show sources |
 | `RAG_TOP_K` | No | Default: `3` |
 | `RAG_DEBUG` | No | Set to `1` to log chunks, scores, and prompts to the console |
 
