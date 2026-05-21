@@ -1,6 +1,6 @@
 # MovieDB – Flask + SQLite Movie Database
 
-A professional beginner-friendly movie database web application built with Flask, SQLite, HTML, CSS, and Docker.
+A professional movie database web application built with Flask, SQLite, HTML, CSS, and Docker.
 
 The project simulates a simplified IMDB-style platform where users can browse movies, view movie details, and leave reviews, while an admin user can manage movie content and upload posters.
 
@@ -328,7 +328,67 @@ rag/
 
 ---
 
-# Author
+---
 
+# Real Test Results
+
+| Question | Retrieved Movie | Result |
+|---|---|---|
+| Who directed Inception? | Inception | Correctly answered: Christopher Nolan |
+| Which movies include Daniel Radcliffe? | Harry Potter and the Sorcerer’s Stone | Correctly identified the movie using actor retrieval |
+| Tell me about Hogwarts | Harry Potter and the Sorcerer’s Stone | Successful semantic retrieval from movie description |
+| What do users say about Inception? | Inception | Correctly summarized stored user reviews |
+| What is the weather today? | None | Safe fallback triggered — no relevant movie information found |
+
+---
+
+# Reflection
+
+This project successfully demonstrates a complete RAG (Retrieval-Augmented Generation) pipeline using Flask, SQLite, FAISS, local embeddings, and Groq.
+
+What worked well:
+- Semantic retrieval using FAISS and sentence-transformers
+- Context-grounded answers with hallucination prevention
+- Docker persistence for SQLite and FAISS data
+- Professional and user-friendly movie interface
+
+Current limitations:
+- One chunk per movie limits retrieval granularity
+- The FAISS index must be rebuilt after adding new reviews
+- Small movie dataset compared to production systems
+- Docker image size is relatively large because of ML dependencies
+
+Possible future improvements:
+- Hybrid keyword + semantic search
+- Automatic incremental indexing
+- Metadata filtering
+- Larger datasets and cloud deployment
+- User authentication system
+
+---
+
+# GitHub and Docker Hub
+
+GitHub Repository:
+`https://github.com/yehuda121/movie_db_flask_RAG_app.git`
+
+Docker Hub Image:
+`yehuda121/imdb-demo`
+
+Pull image:
+
+```bash
+docker pull yehuda121/imdb-demo
+
+# Run container:
+docker run -p 5000:5000 yehuda121/imdb-demo
+
+# Environment Setup
+ - This project uses a local .env file for sensitive configuration such as the Groq API key.
+ - The .env file is intentionally NOT committed to GitHub for security reasons.
+ - Create a .env file inside: movie_flask_app/
+ - based on .env.example.
+
+# Author
 Yehuda Shmulevitz
-Software Engineering Graduate
+Software Engineering'
